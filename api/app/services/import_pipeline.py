@@ -143,20 +143,36 @@ def _lookup_crosswalk(keys: list[tuple[str, int]]) -> dict[tuple[str, int], tupl
         return profile_repo.lookup_crosswalk(conn, keys)
 
 
+def _merge_rating(row: dict[str, Any], f: FilmRecord) -> None:
+    """Merge a second Letterboxd entry that maps to the same TMDB film."""
+    if row["rating_0_10"] is None:
+        row["rating_0_10"] = f.rating_0_10
+    row["liked"] = row["liked"] or f.liked
+    row["review_text"] = row["review_text"] or f.review_text
+    if f.watched_date and (row["watched_date"] is None or f.watched_date > row["watched_date"]):
+        row["watched_date"] = f.watched_date
+    # watched anywhere wins over watchlist-only
+    row["in_watchlist"] = row["in_watchlist"] and f.in_watchlist
+
+
 def _persist(
     profile_id: uuid.UUID,
     parsed: ParsedExport,
     matched: dict[str, MatchResult],
     unmatched: list[FilmRecord],
 ) -> None:
-    rating_rows: list[dict[str, Any]] = []
+    # Multiple Letterboxd entries (distinct URIs) can resolve to the same TMDB id
+    # (alternate cuts, duplicate LB pages). Collapse by film_id so a single upsert
+    # never carries duplicate (profile_id, film_id) keys.
+    by_film: dict[int, dict[str, Any]] = {}
     crosswalk_rows: list[dict[str, Any]] = []
     for f in parsed.films:
         mr = matched.get(f.lb_uri)
         if mr is None:
             continue
-        rating_rows.append(
-            {
+        existing = by_film.get(mr.tmdb_id)
+        if existing is None:
+            by_film[mr.tmdb_id] = {
                 "film_id": mr.tmdb_id,
                 "rating_0_10": f.rating_0_10,
                 "liked": f.liked,
@@ -165,7 +181,8 @@ def _persist(
                 "in_watchlist": f.in_watchlist,
                 "source": "export",
             }
-        )
+        else:
+            _merge_rating(existing, f)
         if f.year is not None:
             crosswalk_rows.append(
                 {
@@ -176,6 +193,7 @@ def _persist(
                     "source": "tmdb_search",
                 }
             )
+    rating_rows = list(by_film.values())
     unmatched_rows = [
         {
             "lb_uri": f.lb_uri,

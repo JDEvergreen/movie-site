@@ -29,16 +29,14 @@ def _sample() -> bytes:
                 "2021-03-04,Paddington,2014,https://boxd.it/bbb,3.0\n"
             ),
             "likes/films.csv": (
-                "Date,Name,Year,Letterboxd URI\n"
-                "2021-01-02,Stalker,1979,https://boxd.it/aaa\n"
+                "Date,Name,Year,Letterboxd URI\n2021-01-02,Stalker,1979,https://boxd.it/aaa\n"
             ),
             "reviews.csv": (
                 "Date,Name,Year,Letterboxd URI,Rating,Review\n"
                 "2021-01-02,Stalker,1979,https://boxd.it/aaa,4.5,Hypnotic and bleak.\n"
             ),
             "watchlist.csv": (
-                "Date,Name,Year,Letterboxd URI\n"
-                "2022-05-05,Solaris,1972,https://boxd.it/ccc\n"
+                "Date,Name,Year,Letterboxd URI\n2022-05-05,Solaris,1972,https://boxd.it/ccc\n"
             ),
         }
     )

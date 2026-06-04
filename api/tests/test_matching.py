@@ -11,8 +11,14 @@ def test_normalize_title() -> None:
 
 
 def _cand(id_: int, title: str, year: str, votes: int = 100) -> dict:
-    return {"id": id_, "title": title, "original_title": title,
-            "release_date": f"{year}-01-01", "vote_count": votes, "popularity": 1.0}
+    return {
+        "id": id_,
+        "title": title,
+        "original_title": title,
+        "release_date": f"{year}-01-01",
+        "vote_count": votes,
+        "popularity": 1.0,
+    }
 
 
 def test_exact_title_and_year_is_full_confidence() -> None:

@@ -62,10 +62,24 @@ def test_director_needs_two_films() -> None:
 
 def test_keyword_idf_weighting_and_gaps() -> None:
     films = [
-        RatedFilm(tmdb_id=1, rating_0_10=10, liked=True, keywords=[10, 11], decade=2010,
-                  countries=["US"], tmdb_vote_average=7.0),
-        RatedFilm(tmdb_id=2, rating_0_10=9, liked=True, keywords=[10], decade=2010,
-                  countries=["US"], tmdb_vote_average=7.0),
+        RatedFilm(
+            tmdb_id=1,
+            rating_0_10=10,
+            liked=True,
+            keywords=[10, 11],
+            decade=2010,
+            countries=["US"],
+            tmdb_vote_average=7.0,
+        ),
+        RatedFilm(
+            tmdb_id=2,
+            rating_0_10=9,
+            liked=True,
+            keywords=[10],
+            decade=2010,
+            countries=["US"],
+            tmdb_vote_average=7.0,
+        ),
     ]
     res = compute_taste(films, _corpus())
     kw = {k["name"]: k["weight"] for k in res.top_keywords}
