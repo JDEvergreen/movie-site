@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Type tokens (PLAN §10). Wire real fonts via next/font in layout.tsx. */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Georgia", "Times New Roman", serif;
+}
+
+body {
+  @apply bg-cream text-ink font-sans antialiased;
+}
+
+/* Skeleton shimmer — PLAN §10: skeletons everywhere, never spinners. */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  @apply rounded-card;
+  background: linear-gradient(90deg, #F3E9D6 25%, #FBF6EC 37%, #F3E9D6 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
