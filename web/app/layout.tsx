@@ -8,9 +8,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // suppressHydrationWarning: browser extensions (e.g. ColorZilla's
+  // cz-shortcut-listen) inject attributes on <html>/<body> before React
+  // hydrates. This silences that one-level, expected mismatch only.
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
