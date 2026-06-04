@@ -68,3 +68,74 @@ export async function getImportStatus(importId: string): Promise<ImportStatus> {
 export function importEventsUrl(importId: string): string {
   return `${API_BASE}/imports/${importId}/events`;
 }
+
+// --- profile / taste ---
+export interface ProfileSummary {
+  profileId: string;
+  username: string;
+  displayName?: string | null;
+  lastImportAt?: string | null;
+  filmCount: number;
+}
+
+export interface GenreAffinity {
+  name: string;
+  affinity: number;
+  components: { rating: number; vs_audience: number; engagement: number; likes: number };
+  count: number;
+  avg_rating: number;
+}
+
+export interface DirectorAffinity {
+  name: string;
+  affinity: number;
+  count: number;
+  avg_rating: number;
+}
+
+export interface TasteProfile {
+  profileId: string;
+  modelVersion: string;
+  mu: number;
+  sigma: number;
+  genreAffinity: Record<string, GenreAffinity>;
+  directorAffinity: Record<string, DirectorAffinity>;
+  eraAffinity: Record<string, { affinity: number; count: number; avg_rating: number }>;
+  countryAffinity: Record<string, { affinity: number; count: number }>;
+  runtimePref: { pref_min?: number; sd_min?: number };
+  topKeywords: { id: number; name: string; weight: number }[];
+  gaps: {
+    decades?: { decade: number; gap: number }[];
+    countries?: { country: string; gap: number }[];
+  };
+}
+
+export interface FilmCard {
+  tmdbId: number;
+  title: string;
+  year?: number | null;
+  posterPath?: string | null;
+  runtimeMin?: number | null;
+  weightedRating?: number | null;
+  yourRating?: number | null;
+}
+
+export async function getProfileSummary(profileId: string): Promise<ProfileSummary> {
+  return unwrap<ProfileSummary>(await fetch(`${API_BASE}/profiles/${profileId}`));
+}
+
+export async function getTasteProfile(profileId: string): Promise<TasteProfile | null> {
+  const res = await fetch(`${API_BASE}/profiles/${profileId}/taste`);
+  if (res.status === 404) return null; // not computed yet
+  return unwrap<TasteProfile>(res);
+}
+
+export async function getRecentlyWatched(profileId: string, limit = 18): Promise<FilmCard[]> {
+  return unwrap<FilmCard[]>(
+    await fetch(`${API_BASE}/profiles/${profileId}/recently-watched?limit=${limit}`),
+  );
+}
+
+export function posterUrl(path?: string | null, size = "w342"): string | null {
+  return path ? `https://image.tmdb.org/t/p/${size}${path}` : null;
+}
