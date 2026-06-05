@@ -46,14 +46,16 @@ export function GenreBubbles({ genres }: { genres: Record<string, GenreAffinity>
               }}
             >
               <span
-                className="px-1 text-center font-bold text-ink"
-                style={{ fontSize: size > 78 ? 13 : size > 56 ? 11 : 9 }}
+                className="px-1 text-center font-extrabold leading-tight text-ink"
+                style={{ fontSize: size > 80 ? 13 : size > 58 ? 11 : 9.5 }}
               >
                 {g.name}
-                <span className="block text-[9px] font-extrabold opacity-70">
-                  {g.affinity >= 0 ? "+" : ""}
-                  {g.affinity.toFixed(2)}
-                </span>
+                {size > 58 && (
+                  <span className="block text-[9px] font-black opacity-60">
+                    {g.affinity >= 0 ? "+" : ""}
+                    {g.affinity.toFixed(2)}
+                  </span>
+                )}
               </span>
             </motion.button>
           );

@@ -92,18 +92,20 @@ export default function ProfileHubPage() {
           </p>
         </PaperCard>
       ) : (
-        <div className="grid items-start gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            <GenreTile taste={taste} tilt={-0.8} delay={0} />
-            <ThemesTile taste={taste} tilt={-1.2} delay={0.1} />
-            <DiggingTile taste={taste} tilt={0.8} delay={0.15} />
-          </div>
-          <div className="flex flex-col gap-6">
-            <DirectorsTile taste={taste} tilt={1.1} delay={0.05} />
-            <DecadeTile taste={taste} tilt={-0.9} delay={0.1} />
-            <PassportTile taste={taste} tilt={1.3} delay={0.15} />
-            <PersonalityTile taste={taste} tilt={-0.7} delay={0.2} />
-          </div>
+        <div className="md:columns-2 [column-gap:1.5rem]">
+          {[
+            <GenreTile key="g" taste={taste} tilt={-0.8} />,
+            <DirectorsTile key="d" taste={taste} tilt={1.1} />,
+            <ThemesTile key="t" taste={taste} tilt={-1.2} />,
+            <DecadeTile key="c" taste={taste} tilt={-0.9} />,
+            <PassportTile key="p" taste={taste} tilt={1.3} />,
+            <PersonalityTile key="v" taste={taste} tilt={-0.7} />,
+            <DiggingTile key="w" taste={taste} tilt={0.8} />,
+          ].map((tile) => (
+            <div key={tile.key} className="mb-6 break-inside-avoid">
+              {tile}
+            </div>
+          ))}
         </div>
       )}
 

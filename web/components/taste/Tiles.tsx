@@ -19,9 +19,7 @@ export function GenreTile({ taste, tilt, delay }: TileProps) {
   return (
     <BrutalCard bg="peach" pattern="dots" tilt={tilt} delay={delay}>
       <Star className="absolute -right-3 -top-3 text-4xl drop-shadow" />
-      <BrutalTitle hint="Bigger = you love it more. Tap a bubble for the why.">
-        Genre galaxy
-      </BrutalTitle>
+      <BrutalTitle hint="Bigger = you love it more.">Genre galaxy</BrutalTitle>
       <GenreBubbles genres={taste.genreAffinity} />
     </BrutalCard>
   );
@@ -110,9 +108,9 @@ export function DecadeTile({ taste, tilt, delay }: TileProps) {
       <BrutalTitle hint="Size = how many you've seen · warm = you love it, cool = less so.">
         Cinema century
       </BrutalTitle>
-      <div className="flex flex-wrap items-end justify-center gap-x-2 gap-y-3 py-2">
+      <div className="grid grid-cols-5 place-items-center gap-x-1 gap-y-3 py-2">
         {decades.map((d, i) => {
-          const size = 34 + (d.count / maxCount) * 34;
+          const size = 34 + (d.count / maxCount) * 30;
           return (
             <motion.div
               key={d.decade}
@@ -171,14 +169,23 @@ export function PassportTile({ taste, tilt, delay }: TileProps) {
               delay: (delay ?? 0) + i * 0.05,
             }}
             whileHover={{ rotate: 0, scale: 1.08, y: -3 }}
-            className="brutal-sm flex w-[4.6rem] flex-col items-center gap-0.5 rounded-[4px] border-dashed bg-paper px-1 py-2"
+            className="brutal-sm w-[4.7rem] overflow-hidden rounded-[5px] bg-paper text-center"
           >
-            <span className="text-2xl leading-none">{flag(c.cc)}</span>
-            <span className="text-[11px] font-black text-ink">{countryName(c.cc)}</span>
-            <span className="text-[10px] font-bold text-ink/50">
-              {c.count}
-              {c.affinity > 0.2 ? " ♥" : ""}
-            </span>
+            <div
+              className="border-b-2 border-dashed border-ink/40 py-1.5 text-2xl leading-none"
+              style={{ background: HEX[pastelFor(c.cc)].fill }}
+            >
+              {flag(c.cc)}
+            </div>
+            <div className="px-1 py-1">
+              <div className="text-[11px] font-black leading-tight text-ink">
+                {countryName(c.cc)}
+              </div>
+              <div className="text-[10px] font-bold text-ink/50">
+                {c.count}
+                {c.affinity > 0.2 ? " ♥" : ""}
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>
