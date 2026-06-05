@@ -59,13 +59,15 @@ export default function ProfileHubPage() {
     <main className="relative mx-auto max-w-5xl px-6 py-14">
       <FloatingShapes />
 
-      <header className="mb-10 space-y-3">
-        <p className="text-sm font-bold uppercase tracking-widest text-ink-faint">Your taste map</p>
-        <h1 className="font-display text-5xl font-black text-ink">
+      <header className="mb-10">
+        <span className="brutal-sm inline-block -rotate-2 rounded-full bg-mint px-3 py-1 text-xs font-black uppercase tracking-widest text-ink">
+          ✦ Your taste map ✦
+        </span>
+        <h1 className="mt-3 inline-block font-display text-6xl font-black uppercase text-ink [text-shadow:3px_3px_0_#F6AE96,5px_5px_0_#3B322C]">
           {summary?.displayName ?? summary?.username ?? "You"}
         </h1>
         {taste && topGenre && (
-          <p className="max-w-xl text-lg text-ink-soft">
+          <p className="mt-4 max-w-xl text-xl font-semibold text-ink">
             You light up for <Hl text={topGenre} k={topGenre} />
             {topDirector ? (
               <>
@@ -77,7 +79,7 @@ export default function ProfileHubPage() {
           </p>
         )}
         {summary && (
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="mt-4 flex flex-wrap gap-2">
             <Sticker label={`${summary.filmCount} films`} pastel="sky" index={0} />
           </div>
         )}
@@ -120,7 +122,7 @@ export default function ProfileHubPage() {
 function Hl({ text, k }: { text: string; k: string }) {
   return (
     <span
-      className="rounded-md px-1.5 font-semibold text-ink"
+      className="brutal-sm mx-0.5 inline-block -rotate-1 rounded-md px-1.5 font-black text-ink"
       style={{ background: HEX[pastelFor(k)].fill }}
     >
       {text}

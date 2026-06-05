@@ -44,7 +44,7 @@ export default function LandingPage() {
           initial={{ scale: 0.7, opacity: 0, rotate: -4 }}
           animate={{ scale: 1, opacity: 1, rotate: -2 }}
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
-          className="font-display text-7xl font-black text-ink"
+          className="font-display text-8xl font-black uppercase text-ink [text-shadow:4px_4px_0_#F6AE96,7px_7px_0_#3B322C]"
         >
           Reel
         </motion.h1>
@@ -78,8 +78,8 @@ export default function LandingPage() {
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.97 }}
         animate={dragging ? { scale: 1.08 } : {}}
-        className={`grid h-60 w-60 place-items-center rounded-blob text-center text-ink shadow-lift transition-colors ${
-          dragging ? "bg-mint" : "bg-butter"
+        className={`grid h-60 w-60 place-items-center rounded-blob border-[3px] border-ink text-center text-ink transition-colors [box-shadow:7px_7px_0_0_#3B322C] ${
+          dragging ? "bg-mint pat-dots" : "bg-butter pat-dots"
         } ${busy ? "opacity-70" : "animate-breathe"}`}
       >
         <span className="px-6">
@@ -109,14 +109,14 @@ export default function LandingPage() {
           disabled={busy}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="letterboxd username"
-          className="h-12 flex-1 rounded-full border-2 border-paper-edge bg-paper px-5 text-ink outline-none transition focus:border-lilac-deep"
+          className="brutal-sm h-12 flex-1 rounded-full bg-paper px-5 font-semibold text-ink outline-none"
         />
         <motion.button
           type="submit"
           disabled={busy || !username.trim()}
           whileHover={{ scale: 1.05, rotate: -2 }}
           whileTap={{ scale: 0.95 }}
-          className="h-12 rounded-full bg-lilac px-5 font-semibold text-lilac-deep shadow-sticker disabled:opacity-50"
+          className="brutal-sm h-12 rounded-full bg-lilac px-5 font-black uppercase text-ink disabled:opacity-50"
         >
           Go
         </motion.button>

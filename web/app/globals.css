@@ -4,9 +4,54 @@
 
 body {
   @apply bg-paper text-ink font-sans antialiased;
-  /* faint paper speckle so the cream feels like real stock, not flat #fff */
-  background-image: radial-gradient(rgba(59, 50, 44, 0.035) 1px, transparent 1px);
-  background-size: 22px 22px;
+  /* bolder paper grid so the page reads like patterned stock */
+  background-image: radial-gradient(rgba(59, 50, 44, 0.06) 1.4px, transparent 1.5px),
+    repeating-linear-gradient(45deg, rgba(220, 106, 75, 0.04) 0 14px, transparent 14px 28px);
+  background-size: 16px 16px, auto;
+}
+
+/* ---- maximalist pattern overlays (apply over a pastel bg-colour) ---- */
+.pat-dots {
+  background-image: radial-gradient(rgba(59, 50, 44, 0.16) 2px, transparent 2.2px);
+  background-size: 13px 13px;
+}
+.pat-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(59, 50, 44, 0.1) 0 7px,
+    transparent 7px 15px
+  );
+}
+.pat-checks {
+  background-image: linear-gradient(
+      45deg,
+      rgba(59, 50, 44, 0.08) 25%,
+      transparent 25% 75%,
+      rgba(59, 50, 44, 0.08) 75%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(59, 50, 44, 0.08) 25%,
+      transparent 25% 75%,
+      rgba(59, 50, 44, 0.08) 75%
+    );
+  background-size: 18px 18px;
+  background-position: 0 0, 9px 9px;
+}
+.pat-grid {
+  background-image: linear-gradient(rgba(59, 50, 44, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 50, 44, 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* hard "brutalist" offset shadow with an ink keyline */
+.brutal {
+  border: 3px solid #3b322c;
+  box-shadow: 6px 6px 0 0 #3b322c;
+}
+.brutal-sm {
+  border: 2px solid #3b322c;
+  box-shadow: 3px 3px 0 0 #3b322c;
 }
 
 /* Playful skeleton (PLAN §10: skeletons, never spinners) */

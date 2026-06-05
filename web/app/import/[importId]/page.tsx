@@ -5,7 +5,7 @@
 
 import { FloatingShapes } from "@/components/ui/FloatingShapes";
 import type { ImportState } from "@/lib/api";
-import { BG, HEX, type Pastel } from "@/lib/pastels";
+import { BG, type Pastel } from "@/lib/pastels";
 import { useImportProgress } from "@/lib/useImportProgress";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -42,7 +42,7 @@ function ImportProgress() {
       <FloatingShapes />
 
       <div className="space-y-2">
-        <h1 className="font-display text-4xl font-bold text-ink">
+        <h1 className="font-display text-5xl font-black uppercase text-ink [text-shadow:3px_3px_0_#BFDCEC,5px_5px_0_#3B322C]">
           {done ? "All spooled up!" : failed ? "The reel snapped" : "Threading the projector…"}
         </h1>
         <p className="text-ink-soft">
@@ -72,16 +72,11 @@ function ImportProgress() {
                       ? { duration: 0.9, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }
                       : { type: "spring", stiffness: 200, damping: 14 }
                   }
-                  className={`grid h-16 w-16 place-items-center rounded-full text-2xl ${
+                  className={`grid h-16 w-16 place-items-center rounded-full text-2xl font-black ${
                     state === "pending"
-                      ? "border-2 border-dashed border-paper-edge"
-                      : `${BG[stage.pastel]} shadow-sticker`
+                      ? "border-[3px] border-dashed border-ink/40"
+                      : `brutal-sm ${BG[stage.pastel]}`
                   }`}
-                  style={
-                    state === "done"
-                      ? { boxShadow: `0 0 0 4px ${HEX[stage.pastel].fill}55` }
-                      : undefined
-                  }
                 >
                   {state === "done" ? "✓" : state === "active" ? "•" : ""}
                 </motion.div>
@@ -100,7 +95,7 @@ function ImportProgress() {
         <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <Link
             href={`/p/${profileId}`}
-            className="inline-block rounded-full bg-butter px-7 py-3 font-display text-lg font-bold text-ink shadow-lift transition hover:-translate-y-1"
+            className="brutal inline-block rounded-full bg-butter px-7 py-3 font-display text-lg font-black uppercase text-ink transition hover:-translate-y-1"
           >
             See your taste map →
           </Link>
