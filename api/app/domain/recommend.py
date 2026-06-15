@@ -43,11 +43,15 @@ class Taste:
     keyword_names: dict[int, str]
 
 
-# component weights per surface (sum ~1; collaborative deferred to Phase 3)
+# One unified scoring lens across all surfaces (sum ~1): a film's taste-fit score
+# — and therefore its "% match" — is identical in every category. The surfaces
+# differ only by which films are eligible (the popularity gate), not how they are
+# scored. (collaborative deferred to Phase 3)
+_BASE_WEIGHTS = {"q": 0.34, "g": 0.22, "d": 0.16, "k": 0.14, "e": 0.06, "c": 0.05, "r": 0.03}
 WEIGHTS: dict[str, dict[str, float]] = {
-    "overall": {"q": 0.34, "g": 0.22, "d": 0.16, "k": 0.14, "e": 0.06, "c": 0.05, "r": 0.03},
-    "blind_spots": {"q": 0.40, "g": 0.20, "d": 0.14, "k": 0.12, "e": 0.06, "c": 0.05, "r": 0.03},
-    "hidden_gems": {"q": 0.20, "g": 0.24, "d": 0.16, "k": 0.20, "e": 0.08, "c": 0.07, "r": 0.05},
+    "overall": _BASE_WEIGHTS,
+    "blind_spots": _BASE_WEIGHTS,
+    "hidden_gems": _BASE_WEIGHTS,
 }
 
 
@@ -167,8 +171,6 @@ def recommend(
     scored: list[tuple[float, Candidate, dict[str, float]]] = []
     for c in gated:
         s, contrib = score(c, taste, w)
-        if surface == "hidden_gems" and pop_threshold > 0:
-            s += 0.08 * (1.0 - min(c.popularity / pop_threshold, 1.0))  # obscurity bonus
         scored.append((s, c, contrib))
 
     scored.sort(key=lambda x: x[0], reverse=True)
