@@ -90,7 +90,7 @@ class FilmCard(ApiModel):
     runtime_min: int | None = None
     weighted_rating: float | None = None
     your_rating: int | None = None
-    overview: str | None = None
+    genres: list[str] = Field(default_factory=list)
     streaming: list[StreamingOffer] = Field(default_factory=list)
 
 

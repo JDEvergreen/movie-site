@@ -118,7 +118,7 @@ export interface FilmCard {
   runtimeMin?: number | null;
   weightedRating?: number | null;
   yourRating?: number | null;
-  overview?: string | null;
+  genres?: string[];
 }
 
 export interface FilmDatum {

@@ -70,7 +70,6 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             film.c.weighted_rating,
             film.c.vote_count,
             film.c.popularity,
-            film.c.overview,
         ).where(
             film.c.weighted_rating.is_not(None),
             film.c.vote_count.is_not(None),
@@ -92,7 +91,6 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             vote_count=int(r.vote_count),
             popularity=float(r.popularity or 0.0),
             decade=(r.year - r.year % 10) if r.year else None,
-            overview=r.overview,
         )
     if not cands:
         return []
@@ -118,6 +116,11 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
         cands,
         "countries",
     )
+
+    # resolve genre ids -> names for display (scoring still uses the ids)
+    gmap = {r.id: r.name for r in conn.execute(select(t.genre.c.id, t.genre.c.name))}
+    for c in cands.values():
+        c.genre_names = [gmap[g] for g in c.genres if g in gmap]
     return list(cands.values())
 
 
