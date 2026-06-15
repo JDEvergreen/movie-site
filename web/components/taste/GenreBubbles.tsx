@@ -108,8 +108,8 @@ function Signal({ label, v }: { label: string; v: number }) {
           className="absolute top-0 h-full rounded-full"
           style={
             v >= 0
-              ? { left: "50%", width: `${pct}%`, background: "#5FA87C" }
-              : { right: "50%", width: `${pct}%`, background: "#DC6A4B" }
+              ? { left: "50%", width: `${pct}%`, background: "#1F8A8A" }
+              : { right: "50%", width: `${pct}%`, background: "#C8502C" }
           }
         />
       </div>

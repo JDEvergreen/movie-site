@@ -8,16 +8,16 @@ const config: Config = {
     extend: {
       colors: {
         // paper + ink
-        paper: { DEFAULT: "#FBF6EC", deep: "#F3E9D6", edge: "#EADDC4" },
+        paper: { DEFAULT: "#FFFBF0", deep: "#FBF0D6", edge: "#F0E2C2" },
         ink: { DEFAULT: "#3B322C", soft: "#857669", faint: "#B6A795" },
-        // pastel accent families: each has a soft fill + a deeper ink for text/edges
-        blush: { DEFAULT: "#F49AC1", deep: "#BE4A77" },
-        peach: { DEFAULT: "#F6A24F", deep: "#BD5A14" },
-        butter: { DEFAULT: "#F3C53A", deep: "#A87E0E" },
-        mint: { DEFAULT: "#5DC59C", deep: "#207C5E" },
-        sky: { DEFAULT: "#6FACDA", deep: "#2C6694" },
-        lilac: { DEFAULT: "#9F86E2", deep: "#523BB4" },
-        coral: { DEFAULT: "#F26B45", deep: "#B83216" },
+        // warm summer palette: coral / yellow / teal shades (sync with pastels.ts)
+        blush: { DEFAULT: "#F8C2AD", deep: "#C25C3E" },
+        peach: { DEFAULT: "#F8B093", deep: "#CE5E34" },
+        butter: { DEFAULT: "#FCE08C", deep: "#B08612" },
+        mint: { DEFAULT: "#8FDCDC", deep: "#1F8A8A" },
+        sky: { DEFAULT: "#5FC9CA", deep: "#156A6A" },
+        lilac: { DEFAULT: "#F6CF77", deep: "#9E7611" },
+        coral: { DEFAULT: "#F5906B", deep: "#C8502C" },
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],

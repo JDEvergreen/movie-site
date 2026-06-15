@@ -45,13 +45,18 @@ export const RING_DEEP: Record<Pastel, string> = {
   coral: "ring-coral-deep",
 };
 
-// Soft fill hex (for inline styles where a gradient/border is needed)
+// Warm summer palette: cream base with teal / coral / yellow accents. The seven
+// family names map onto shades of those three hues. (fill = soft surface tint,
+// deep = readable text/edge colour.) Keep in sync with tailwind.config.ts.
 export const HEX: Record<Pastel, { fill: string; deep: string }> = {
-  blush: { fill: "#F49AC1", deep: "#BE4A77" },
-  peach: { fill: "#F6A24F", deep: "#BD5A14" },
-  butter: { fill: "#F3C53A", deep: "#A87E0E" },
-  mint: { fill: "#5DC59C", deep: "#207C5E" },
-  sky: { fill: "#6FACDA", deep: "#2C6694" },
-  lilac: { fill: "#9F86E2", deep: "#523BB4" },
-  coral: { fill: "#F26B45", deep: "#B83216" },
+  // coral ramp (palest -> strongest)
+  blush: { fill: "#F8C2AD", deep: "#C25C3E" },
+  peach: { fill: "#F8B093", deep: "#CE5E34" },
+  coral: { fill: "#F5906B", deep: "#C8502C" },
+  // yellow / gold
+  butter: { fill: "#FCE08C", deep: "#B08612" },
+  lilac: { fill: "#F6CF77", deep: "#9E7611" },
+  // teal
+  mint: { fill: "#8FDCDC", deep: "#1F8A8A" },
+  sky: { fill: "#5FC9CA", deep: "#156A6A" },
 };
