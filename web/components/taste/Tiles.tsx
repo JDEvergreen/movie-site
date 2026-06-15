@@ -89,7 +89,7 @@ export function PersonalityTile({ taste, delay }: TileProps) {
     return (
       <BrutalCard bg="blush" delay={delay}>
         <BrutalTitle>This slice</BrutalTitle>
-        <div className="flex flex-1 items-center justify-around gap-2">
+        <div className="flex flex-1 flex-col justify-around gap-2">
           <Ring value={filtered.length} max={totalFilms} unit="" label="films" pastel="peach" />
           <Ring
             value={avgRating}
@@ -122,7 +122,7 @@ export function PersonalityTile({ taste, delay }: TileProps) {
   return (
     <BrutalCard bg="blush" delay={delay}>
       <BrutalTitle>Viewing personality</BrutalTitle>
-      <div className="flex flex-1 items-center justify-around gap-2">
+      <div className="flex flex-1 flex-col justify-around gap-2">
         <Ring value={rt ?? 0} max={200} unit="m" label={runtimeLabel} pastel="peach" />
         <Ring
           value={taste.mu}
@@ -164,8 +164,8 @@ function Ring({
   const c = 2 * Math.PI * r;
   const f = Math.max(0, Math.min(1, value / max));
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative h-24 w-24">
+    <div className="flex w-full items-center gap-4">
+      <div className="relative h-20 w-20 shrink-0">
         <svg aria-hidden="true" viewBox="0 0 100 100" className="h-full w-full -rotate-90">
           <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(59,50,44,0.08)" strokeWidth="9" />
           <motion.circle
@@ -184,13 +184,13 @@ function Ring({
           />
         </svg>
         <div className="absolute inset-0 grid place-items-center">
-          <span className="font-display text-lg font-semibold text-ink">
+          <span className="font-display text-base font-semibold text-ink">
             {value.toFixed(decimals)}
-            <span className="text-[10px] text-ink/50">{unit}</span>
+            <span className="text-[9px] text-ink/50">{unit}</span>
           </span>
         </div>
       </div>
-      <span className="text-xs text-ink/55">{label}</span>
+      <span className="text-sm font-medium text-ink/70">{label}</span>
     </div>
   );
 }
