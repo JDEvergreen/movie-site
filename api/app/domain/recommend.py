@@ -22,6 +22,7 @@ class Candidate:
     vote_count: int
     popularity: float
     decade: int | None
+    overview: str | None = None
     genres: list[int] = field(default_factory=list)
     directors: list[int] = field(default_factory=list)
     keywords: list[int] = field(default_factory=list)

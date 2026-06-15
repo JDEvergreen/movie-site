@@ -70,6 +70,7 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             film.c.weighted_rating,
             film.c.vote_count,
             film.c.popularity,
+            film.c.overview,
         ).where(
             film.c.weighted_rating.is_not(None),
             film.c.vote_count.is_not(None),
@@ -91,6 +92,7 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             vote_count=int(r.vote_count),
             popularity=float(r.popularity or 0.0),
             decade=(r.year - r.year % 10) if r.year else None,
+            overview=r.overview,
         )
     if not cands:
         return []

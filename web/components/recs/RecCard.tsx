@@ -56,14 +56,9 @@ export function RecCard({
           <h3 className="font-display text-base font-semibold leading-tight text-ink">
             {f.title} <span className="text-sm font-normal text-ink/45">{f.year}</span>
           </h3>
-          <ul className="space-y-1">
-            {item.explanation.reasons.map((r) => (
-              <li key={r} className="flex gap-1.5 text-xs text-ink/65">
-                <span className="text-ink/30">·</span>
-                {r}
-              </li>
-            ))}
-          </ul>
+          {f.overview && (
+            <p className="line-clamp-4 text-xs leading-relaxed text-ink/65">{f.overview}</p>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>

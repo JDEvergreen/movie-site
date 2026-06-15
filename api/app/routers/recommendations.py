@@ -61,6 +61,7 @@ async def get_recs(
                     poster_path=it["candidate"].poster_path,
                     runtime_min=it["candidate"].runtime_min,
                     weighted_rating=round(it["candidate"].weighted_rating, 2),
+                    overview=it["candidate"].overview,
                 ),
                 rank=i + 1,
                 score=it["score"],
