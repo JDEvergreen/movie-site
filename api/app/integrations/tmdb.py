@@ -117,19 +117,35 @@ class TMDBClient:
         )
 
     async def discover_movies(
-        self, *, vote_count_gte: int, page: int = 1, sort_by: str = "vote_count.desc"
+        self,
+        *,
+        vote_count_gte: int,
+        page: int = 1,
+        sort_by: str = "vote_count.desc",
+        vote_count_lte: int | None = None,
+        vote_average_gte: float | None = None,
+        release_date_gte: str | None = None,
+        release_date_lte: str | None = None,
+        with_genres: str | None = None,
     ) -> dict[str, Any]:
-        return await self._get(
-            "/discover/movie",
-            {
-                "language": "en-US",
-                "include_adult": "false",
-                "sort_by": sort_by,
-                "vote_count.gte": vote_count_gte,
-                "page": page,
-            },
-            TTL_DISCOVER,
-        )
+        params: dict[str, Any] = {
+            "language": "en-US",
+            "include_adult": "false",
+            "sort_by": sort_by,
+            "vote_count.gte": vote_count_gte,
+            "page": page,
+        }
+        if vote_count_lte is not None:
+            params["vote_count.lte"] = vote_count_lte
+        if vote_average_gte is not None:
+            params["vote_average.gte"] = vote_average_gte
+        if release_date_gte is not None:
+            params["primary_release_date.gte"] = release_date_gte
+        if release_date_lte is not None:
+            params["primary_release_date.lte"] = release_date_lte
+        if with_genres is not None:
+            params["with_genres"] = with_genres
+        return await self._get("/discover/movie", params, TTL_DISCOVER)
 
     async def search_movie(self, query: str, year: int | None = None) -> dict[str, Any]:
         params: dict[str, Any] = {"query": query, "language": "en-US", "include_adult": "false"}
