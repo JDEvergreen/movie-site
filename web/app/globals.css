@@ -4,7 +4,7 @@
 
 body {
   @apply text-ink font-sans antialiased;
-  background-color: #fdf4db; /* warm summer cream */
+  background-color: #fdf8e8; /* warm summer cream (light) */
 }
 
 /* pattern overlays kept as no-ops so any lingering refs are harmless */
