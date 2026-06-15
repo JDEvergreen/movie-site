@@ -32,6 +32,7 @@ class FilmRecord:
 @dataclass
 class ParsedExport:
     username: str | None
+    display_name: str | None
     films: list[FilmRecord]
 
     @property
@@ -127,12 +128,19 @@ def parse_export(data: bytes) -> ParsedExport:
         rec = get(row["Letterboxd URI"], row["Name"], row.get("Year"))
         rec.in_watchlist = True
 
-    return ParsedExport(username=_read_username(zf), films=list(records.values()))
+    username, display_name = _read_profile(zf)
+    return ParsedExport(username=username, display_name=display_name, films=list(records.values()))
 
 
-def _read_username(zf: zipfile.ZipFile) -> str | None:
+def _read_profile(zf: zipfile.ZipFile) -> tuple[str | None, str | None]:
+    """(username, display_name) from profile.csv. Display name is the user's
+    Given + Family Name (e.g. "JD Railsback"); username is the handle."""
     rows = _open_csv(zf, "profile.csv")
-    if rows:
-        row = rows[0]
-        return row.get("Username") or row.get("Given Name") or None
-    return None
+    if not rows:
+        return None, None
+    row = rows[0]
+    username = row.get("Username") or None
+    given = (row.get("Given Name") or "").strip()
+    family = (row.get("Family Name") or "").strip()
+    display_name = f"{given} {family}".strip() or None
+    return username, display_name

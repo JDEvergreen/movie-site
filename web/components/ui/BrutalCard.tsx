@@ -4,8 +4,8 @@ import { HEX, type Pastel } from "@/lib/pastels";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-// Minimal card: white surface with a faint colour wash, hairline border, soft
-// shadow. (pattern / shape / tilt props are accepted but ignored now.)
+// Minimal card: faint colour wash with a hairline border, lightly rounded, no
+// shadow or hover motion. (pattern / shape / tilt props are accepted but ignored.)
 export function BrutalCard({
   children,
   bg = "blush",
@@ -26,8 +26,7 @@ export function BrutalCard({
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, ease: "easeOut", delay }}
-      whileHover={{ y: -2 }}
-      className={`brutal flex h-full flex-col rounded-2xl p-6 ${className}`}
+      className={`flex h-full flex-col rounded-md border border-ink/10 p-6 ${className}`}
       style={{ backgroundColor: `${HEX[bg].fill}14` }}
     >
       {children}

@@ -63,7 +63,7 @@ async def run_pipeline(import_id: str, redis: Any, tmdb: TMDBClient) -> None:
         await stage("profiling")
         await asyncio.to_thread(taste_service.compute_and_store, profile_id)
 
-        await asyncio.to_thread(_finish, iid, profile_id, parsed.username)
+        await asyncio.to_thread(_finish, iid, profile_id, parsed.display_name or parsed.username)
         await stage("ready", matched=len(matched), unmatched=len(unmatched))
     except Exception as exc:  # noqa: BLE001 - surface any failure to the user
         await asyncio.to_thread(_fail, iid, str(exc))
@@ -226,9 +226,9 @@ def _existing_film_ids(conn: Any, ids: list[int]) -> set[int]:
     return {r[0] for r in rows}
 
 
-def _finish(import_id: uuid.UUID, profile_id: uuid.UUID, username: str | None) -> None:
+def _finish(import_id: uuid.UUID, profile_id: uuid.UUID, display_name: str | None) -> None:
     with get_engine().begin() as conn:
-        profile_repo.finalize_profile(conn, profile_id, username)
+        profile_repo.finalize_profile(conn, profile_id, display_name)
 
 
 def _fail(import_id: uuid.UUID, error: str) -> None:
