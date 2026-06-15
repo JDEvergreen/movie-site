@@ -92,7 +92,7 @@ def score(c: Candidate, t: Taste, w: dict[str, float]) -> tuple[float, dict[str,
     return total, contrib
 
 
-def _explain(c: Candidate, t: Taste, contrib: dict[str, float], surface: str) -> dict[str, Any]:
+def _explain(c: Candidate, t: Taste, surface: str) -> dict[str, Any]:
     reasons: list[str] = []
     # director
     best_dir = max(c.directors, key=lambda d: t.director.get(d, -9), default=None)
@@ -113,9 +113,7 @@ def _explain(c: Candidate, t: Taste, contrib: dict[str, float], surface: str) ->
     kw_names = [t.keyword_names[k] for k in kw_hits[:3] if k in t.keyword_names]
     if kw_names:
         reasons.append(f"Themes you gravitate toward: {', '.join(kw_names)}")
-    # quality
-    if contrib["quality"] > 0.25:
-        reasons.append(f"Critically acclaimed ({c.weighted_rating:.1f}/10)")
+    # quality — the rating badge on the poster already conveys this, so no reason line
     if not reasons:
         reasons.append("A fit for your overall taste")
     return {"source": surface, "reasons": reasons[:3]}
@@ -166,7 +164,7 @@ def recommend(
                 "candidate": c,
                 "score": round(s, 4),
                 "components": {k: round(v, 4) for k, v in contrib.items()},
-                "explanation": _explain(c, taste, contrib, surface),
+                "explanation": _explain(c, taste, surface),
             }
         )
         if len(out) >= limit:
