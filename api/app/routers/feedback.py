@@ -67,9 +67,7 @@ async def get_dismissed(profile_id: str) -> list[FilmCard]:
                 film.c.runtime_min,
                 film.c.weighted_rating,
             )
-            .select_from(
-                t.user_feedback.join(film, film.c.tmdb_id == t.user_feedback.c.film_id)
-            )
+            .select_from(t.user_feedback.join(film, film.c.tmdb_id == t.user_feedback.c.film_id))
             .where(
                 t.user_feedback.c.profile_id == pid,
                 t.user_feedback.c.action == "not_interested",

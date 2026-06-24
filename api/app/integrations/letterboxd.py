@@ -30,9 +30,9 @@ _UA = "movie-rec-bot/0.1 (personal recommendation tool; not scraping user data)"
 
 @dataclass
 class LbStats:
-    rating: float          # 0.5–5.0 Letterboxd average
-    rating_count: int      # number of ratings
-    watch_count: int       # members who've watched
+    rating: float  # 0.5–5.0 Letterboxd average
+    rating_count: int  # number of ratings
+    watch_count: int  # members who've watched
     list_count: int | None = None
     fan_count: int | None = None
 
@@ -126,13 +126,15 @@ class LetterboxdClient:
         if self._redis is not None:
             await self._redis.set(
                 cache_key,
-                json.dumps({
-                    "rating": stats.rating,
-                    "rating_count": stats.rating_count,
-                    "watch_count": stats.watch_count,
-                    "list_count": stats.list_count,
-                    "fan_count": stats.fan_count,
-                }),
+                json.dumps(
+                    {
+                        "rating": stats.rating,
+                        "rating_count": stats.rating_count,
+                        "watch_count": stats.watch_count,
+                        "list_count": stats.list_count,
+                        "fan_count": stats.fan_count,
+                    }
+                ),
                 ex=TTL_STATS,
             )
         return stats
