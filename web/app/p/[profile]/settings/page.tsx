@@ -69,10 +69,16 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-10 py-5" style={{ borderBottom: `1px solid ${EDGE}` }}>
+    <div
+      className="flex items-center justify-between gap-10 py-5"
+      style={{ borderBottom: `1px solid ${EDGE}` }}
+    >
       <div className="min-w-0">
         <p className="text-[14px] font-medium text-white">{label}</p>
-        <p className="text-[12px] mt-0.5 leading-relaxed" style={{ color: "rgba(255,255,255,0.3)" }}>
+        <p
+          className="text-[12px] mt-0.5 leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.3)" }}
+        >
           {description}
         </p>
       </div>
@@ -109,7 +115,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="mx-auto max-w-3xl px-8 mt-10">
-
         {/* Display */}
         <section>
           <SectionDivider>Display</SectionDivider>
@@ -148,7 +153,9 @@ export default function SettingsPage() {
         <section className="mt-14">
           <SectionDivider>Dismissed films</SectionDivider>
           <p className="text-[13px] mb-7 -mt-2 leading-relaxed" style={{ color: DIM }}>
-            Films you've hidden. Hover a poster and click <strong style={{ color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>Restore</strong> to bring them back to your recommendations.
+            Films you've hidden. Hover a poster and click{" "}
+            <strong style={{ color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>Restore</strong> to
+            bring them back to your recommendations.
           </p>
 
           {loading ? (
@@ -156,7 +163,7 @@ export default function SettingsPage() {
               className="grid gap-3"
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))" }}
             >
-              {Array.from({ length: 10 }).map((_, i) => (
+              {Array.from({ length: 10 }, (_, i) => i).map((i) => (
                 <div
                   key={i}
                   className="rounded-sm"
@@ -197,7 +204,10 @@ export default function SettingsPage() {
                         />
                       ) : (
                         <div className="flex h-full items-end p-2">
-                          <span className="line-clamp-3 text-[9px] leading-tight" style={{ color: DIM }}>
+                          <span
+                            className="line-clamp-3 text-[9px] leading-tight"
+                            style={{ color: DIM }}
+                          >
                             {film.title}
                           </span>
                         </div>

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  type FilmDatum,
-  type TasteProfile,
-  getFilms,
-  getTasteProfile,
-  posterUrl,
-} from "@/lib/api";
+import { type FilmDatum, type TasteProfile, getFilms, getTasteProfile, posterUrl } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -32,7 +26,10 @@ function StatPill({ label, value }: { label: string; value: string | number }) {
       className="flex flex-col gap-1 rounded-sm px-5 py-3"
       style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${EDGE}` }}
     >
-      <span className="text-[9px] uppercase tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.2)" }}>
+      <span
+        className="text-[9px] uppercase tracking-[0.2em]"
+        style={{ color: "rgba(255,255,255,0.2)" }}
+      >
         {label}
       </span>
       <span className="text-[15px] font-medium text-white tabular-nums">{value}</span>
@@ -69,7 +66,7 @@ export default function TasteMapPage() {
     for (const film of films) {
       for (const genre of film.genres) {
         if (!map.has(genre)) map.set(genre, []);
-        map.get(genre)!.push(film);
+        map.get(genre)?.push(film);
       }
     }
     for (const list of map.values()) list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
@@ -81,7 +78,7 @@ export default function TasteMapPage() {
     for (const film of films) {
       for (const dir of film.directors) {
         if (!map.has(dir)) map.set(dir, []);
-        map.get(dir)!.push(film);
+        map.get(dir)?.push(film);
       }
     }
     for (const list of map.values()) list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
@@ -92,7 +89,7 @@ export default function TasteMapPage() {
     if (!films.length) return null;
     const rated = films.filter((f) => f.rating != null);
     const avgRating = rated.length
-      ? rated.reduce((s, f) => s + f.rating! / 2, 0) / rated.length
+      ? rated.reduce((s, f) => s + (f.rating as number) / 2, 0) / rated.length
       : null;
     const liked = films.filter((f) => f.liked).length;
     return { total: films.length, avgRating, liked };
@@ -113,7 +110,7 @@ export default function TasteMapPage() {
 
   const eras = taste
     ? Object.entries(taste.eraAffinity)
-        .map(([decade, data]) => ({ decade: parseInt(decade), ...data }))
+        .map(([decade, data]) => ({ decade: Number.parseInt(decade), ...data }))
         .filter((e) => e.count > 0)
         .sort((a, b) => a.decade - b.decade)
     : [];
@@ -125,7 +122,6 @@ export default function TasteMapPage() {
 
   return (
     <main style={{ background: "#0a0a0a" }} className="min-h-screen pb-32">
-
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-7xl px-8 pt-14">
         <h1 className="font-display text-[5.5rem] italic font-light text-white leading-none tracking-tight">
@@ -146,7 +142,6 @@ export default function TasteMapPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-8 mt-16 space-y-20">
-
         {/* ── Genres ───────────────────────────────────────────────────────── */}
         {genres.length > 0 && (
           <section>
@@ -191,7 +186,9 @@ export default function TasteMapPage() {
                         </span>
                         <span
                           className="shrink-0 text-[11px] tabular-nums"
-                          style={{ color: active ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)" }}
+                          style={{
+                            color: active ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)",
+                          }}
                         >
                           {g.affinity >= 0 ? "+" : ""}
                           {g.affinity.toFixed(2)}
@@ -215,7 +212,10 @@ export default function TasteMapPage() {
               </div>
 
               {/* Right: film grid for selected genre */}
-              <div className="no-scrollbar flex-1 overflow-y-auto" style={{ background: "#0b0b0b" }}>
+              <div
+                className="no-scrollbar flex-1 overflow-y-auto"
+                style={{ background: "#0b0b0b" }}
+              >
                 {activeGenre ? (
                   <div className="p-6">
                     <div className="mb-6 pb-5" style={{ borderBottom: `1px solid ${EDGE}` }}>
@@ -223,7 +223,8 @@ export default function TasteMapPage() {
                         {activeGenre.name}
                       </h3>
                       <p className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,0.28)" }}>
-                        {activeGenre.count} films &middot; ★&thinsp;{activeGenre.avg_rating.toFixed(1)} avg &middot;{" "}
+                        {activeGenre.count} films &middot; ★&thinsp;
+                        {activeGenre.avg_rating.toFixed(1)} avg &middot;{" "}
                         {activeGenre.affinity >= 0 ? "+" : ""}
                         {activeGenre.affinity.toFixed(2)} affinity
                       </p>
@@ -325,8 +326,7 @@ export default function TasteMapPage() {
                       </p>
                       <p className="mt-0.5 text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>
                         {d.count} {d.count === 1 ? "film" : "films"} &middot; ★&thinsp;
-                        {(d.avg_rating / 2).toFixed(1)} avg &middot;{" "}
-                        {d.affinity >= 0 ? "+" : ""}
+                        {(d.avg_rating / 2).toFixed(1)} avg &middot; {d.affinity >= 0 ? "+" : ""}
                         {d.affinity.toFixed(2)}
                       </p>
                     </div>
@@ -382,7 +382,10 @@ export default function TasteMapPage() {
               {eras.map((era) => {
                 const barPct = (era.count / maxEraCount) * 100;
                 // Map affinity (-1..+1) to bar opacity (0.12..1.0)
-                const opacity = Math.max(0.12, Math.min(1.0, 0.12 + ((era.affinity + 1) / 2) * 0.88));
+                const opacity = Math.max(
+                  0.12,
+                  Math.min(1.0, 0.12 + ((era.affinity + 1) / 2) * 0.88),
+                );
                 return (
                   <div key={era.decade} className="flex items-center gap-4">
                     <span
@@ -406,12 +409,8 @@ export default function TasteMapPage() {
                       />
                     </div>
 
-                    <div
-                      className="flex w-40 shrink-0 items-center justify-between gap-3 text-[11px] tabular-nums"
-                    >
-                      <span style={{ color: "rgba(255,255,255,0.22)" }}>
-                        {era.count} films
-                      </span>
+                    <div className="flex w-40 shrink-0 items-center justify-between gap-3 text-[11px] tabular-nums">
+                      <span style={{ color: "rgba(255,255,255,0.22)" }}>{era.count} films</span>
                       <span style={{ color: "rgba(255,255,255,0.25)" }}>
                         ★&thinsp;{(era.avg_rating / 2).toFixed(1)}
                       </span>
@@ -448,9 +447,9 @@ function Skeleton() {
       <div className="mx-auto max-w-7xl px-8 pt-14 space-y-8">
         <div className="h-20 w-48 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
         <div className="flex gap-3">
-          {[80, 72, 64, 96, 112].map((w, i) => (
+          {[80, 72, 64, 96, 112].map((w) => (
             <div
-              key={i}
+              key={w}
               className="h-16 rounded-sm"
               style={{ width: w, background: "rgba(255,255,255,0.03)" }}
             />

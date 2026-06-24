@@ -66,8 +66,7 @@ export default function RecsPage() {
         <h1 className="font-display text-[5.5rem] italic font-light text-white leading-none tracking-tight">
           {name ? (
             <>
-              Watch next,{" "}
-              <span style={{ color: "rgba(255,255,255,0.42)" }}>{name}.</span>
+              Watch next, <span style={{ color: "rgba(255,255,255,0.42)" }}>{name}.</span>
             </>
           ) : (
             "Watch next."
@@ -92,7 +91,10 @@ export default function RecsPage() {
                 <h2 className="font-display text-[2.6rem] italic font-light text-white leading-tight">
                   {s.title}
                 </h2>
-                <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)" }}>
+                <p
+                  className="mt-2 text-[13px] leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.28)" }}
+                >
                   {s.blurb}
                 </p>
               </div>
@@ -114,7 +116,10 @@ export default function RecsPage() {
                   </p>
                   <p className="mt-1 text-[12px]" style={{ color: "rgba(255,255,255,0.14)" }}>
                     Import more of your Letterboxd history to populate this section.{" "}
-                    <Link href="/" className="underline underline-offset-2 hover:opacity-70 transition-opacity">
+                    <Link
+                      href="/"
+                      className="underline underline-offset-2 hover:opacity-70 transition-opacity"
+                    >
                       Import now
                     </Link>
                   </p>
@@ -134,12 +139,18 @@ function LoadingSkeleton() {
       {SURFACES.map((s) => (
         <div key={s.key} className="mx-auto max-w-7xl px-8 mt-14">
           <div className="border-t pt-8 mb-7" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-            <div className="h-2.5 w-16 rounded-full mb-3" style={{ background: "rgba(255,255,255,0.05)" }} />
+            <div
+              className="h-2.5 w-16 rounded-full mb-3"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            />
             <div className="h-10 w-64 rounded" style={{ background: "rgba(255,255,255,0.05)" }} />
-            <div className="h-3 w-80 rounded mt-3" style={{ background: "rgba(255,255,255,0.03)" }} />
+            <div
+              className="h-3 w-80 rounded mt-3"
+              style={{ background: "rgba(255,255,255,0.03)" }}
+            />
           </div>
           <div className="flex gap-3 overflow-hidden">
-            {Array.from({ length: 7 }).map((_, k) => (
+            {Array.from({ length: 7 }, (_, k) => k).map((k) => (
               <div
                 key={k}
                 className="w-44 shrink-0 rounded-sm"
