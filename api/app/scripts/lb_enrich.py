@@ -20,6 +20,7 @@ import argparse
 import asyncio
 import sys
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import Connection, select, update
 
@@ -29,7 +30,7 @@ from app.db.base import get_engine
 from app.integrations.letterboxd import LbStats, LetterboxdClient
 
 
-async def _maybe_redis(url: str):  # type: ignore[return]
+async def _maybe_redis(url: str) -> Any:
     try:
         import redis.asyncio as aioredis
 
@@ -60,7 +61,7 @@ def _write_result(
     slug: str | None,
     stats: LbStats | None,
 ) -> None:
-    values: dict = {"lb_enriched_at": datetime.now(UTC)}
+    values: dict[str, object] = {"lb_enriched_at": datetime.now(UTC)}
     if slug is not None:
         values["lb_slug"] = slug
     # Only overwrite stats columns when we actually received data — never

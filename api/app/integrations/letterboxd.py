@@ -179,10 +179,10 @@ def _parse_counts(html: str) -> tuple[int | None, int | None, int | None]:
 
     watches = lists_count = fans = None
     for a in soup.find_all("a", href=True):
-        classes = " ".join(a.get("class", []))
+        classes = " ".join(a.get("class") or [])
         if "filmstat" not in classes:
             continue
-        m = re.search(r"([\d,]+)", a.get("title", ""))
+        m = re.search(r"([\d,]+)", str(a.get("title") or ""))
         if not m:
             continue
         val = int(m.group(1).replace(",", ""))
