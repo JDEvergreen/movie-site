@@ -194,7 +194,11 @@ def recommend(
         scored.sort(
             key=lambda x: (
                 x[0]
-                + 0.3 * (x[1].lb_rating / 5.0 if x[1].lb_rating is not None else x[1].weighted_rating / 10.0)
+                + 0.3 * (
+                    x[1].lb_rating / 5.0
+                    if x[1].lb_rating is not None
+                    else x[1].weighted_rating / 10.0
+                )
             ),
             reverse=True,
         )

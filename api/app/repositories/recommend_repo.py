@@ -43,7 +43,8 @@ def load_taste(conn: Connection, profile_id: uuid.UUID) -> Taste | None:
 
 
 def excluded_film_ids(conn: Connection, profile_id: uuid.UUID) -> set[int]:
-    """Films the user has already watched, plus 'not interested'. Watchlist-only entries are NOT excluded."""
+    """Films the user has already watched, plus 'not interested'.
+    Watchlist-only entries (no watched_date and no rating) are NOT excluded."""
     watched = conn.execute(
         select(t.user_film_rating.c.film_id).where(
             t.user_film_rating.c.profile_id == profile_id,

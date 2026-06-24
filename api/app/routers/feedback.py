@@ -8,7 +8,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import delete as sa_delete, select
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.db import tables as t
@@ -50,7 +51,10 @@ async def get_dismissed(profile_id: str) -> list[FilmCard]:
     try:
         pid = uuid.UUID(profile_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail={"error": {"code": "not_found", "message": "profile not found"}}) from None
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "not_found", "message": "profile not found"}},
+        ) from None
 
     def _read() -> list[dict[str, Any]]:
         film = t.film
@@ -94,7 +98,10 @@ async def remove_dismissed(profile_id: str, film_id: int) -> None:
     try:
         pid = uuid.UUID(profile_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail={"error": {"code": "not_found", "message": "profile not found"}}) from None
+        raise HTTPException(
+            status_code=404,
+            detail={"error": {"code": "not_found", "message": "profile not found"}},
+        ) from None
 
     def _delete() -> None:
         with get_engine().begin() as conn:
