@@ -26,7 +26,7 @@ def load_rated_films(conn: Connection, profile_id: uuid.UUID) -> list[RatedFilm]
             film.c.vote_average,
         )
         .select_from(ufr.join(film, film.c.tmdb_id == ufr.c.film_id))
-        .where(ufr.c.profile_id == profile_id, ufr.c.in_watchlist.is_not(True))
+        .where(ufr.c.profile_id == profile_id, ufr.c.watched.is_(True))
     ).all()
 
     films: dict[int, RatedFilm] = {}
@@ -193,7 +193,7 @@ def get_profile_summary(conn: Connection, profile_id: uuid.UUID) -> dict[str, An
         .select_from(t.user_film_rating)
         .where(
             t.user_film_rating.c.profile_id == profile_id,
-            t.user_film_rating.c.in_watchlist.is_not(True),
+            t.user_film_rating.c.watched.is_(True),
         )
     ).scalar_one()
     return {
@@ -219,7 +219,7 @@ def load_film_dataset(conn: Connection, profile_id: uuid.UUID) -> list[dict[str,
             ufr.c.liked,
         )
         .select_from(ufr.join(film, film.c.tmdb_id == ufr.c.film_id))
-        .where(ufr.c.profile_id == profile_id, ufr.c.in_watchlist.is_not(True))
+        .where(ufr.c.profile_id == profile_id, ufr.c.watched.is_(True))
     ).all()
 
     out: dict[int, dict[str, Any]] = {}
@@ -290,6 +290,7 @@ def get_watchlist(conn: Connection, profile_id: uuid.UUID) -> list[dict[str, Any
                 film.c.weighted_rating,
                 film.c.lb_rating,
                 film.c.lb_watch_count,
+                film.c.lb_slug,
             )
             .select_from(ufr.join(film, film.c.tmdb_id == ufr.c.film_id))
             .where(ufr.c.profile_id == profile_id, ufr.c.in_watchlist.is_(True))
@@ -315,7 +316,7 @@ def recently_watched(conn: Connection, profile_id: uuid.UUID, limit: int) -> lis
                 ufr.c.rating_0_10,
             )
             .select_from(ufr.join(film, film.c.tmdb_id == ufr.c.film_id))
-            .where(ufr.c.profile_id == profile_id, ufr.c.in_watchlist.is_not(True))
+            .where(ufr.c.profile_id == profile_id, ufr.c.watched.is_(True))
             .order_by(ufr.c.watched_date.desc().nulls_last())
             .limit(limit)
         )

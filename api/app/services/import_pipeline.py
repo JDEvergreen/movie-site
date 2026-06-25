@@ -17,9 +17,9 @@ from typing import Any, cast
 
 from app.config import get_settings
 from app.db.base import get_engine
-from app.domain.enrich import parse_movie, weighted_rating
+from app.domain.enrich import parse_movie, parse_tv_show, weighted_rating
 from app.domain.letterboxd_export import FilmRecord, ParsedExport, parse_export
-from app.domain.matching import MatchResult, choose_match, normalize_title
+from app.domain.matching import MatchResult, choose_match, choose_tv_match, normalize_title
 from app.integrations import progress
 from app.integrations.tmdb import TMDBClient
 from app.repositories import film_repo, profile_repo
@@ -70,7 +70,12 @@ async def run_pipeline(import_id: str, redis: Any, tmdb: TMDBClient) -> None:
         await stage("enriching", matched=len(matched), unmatched=len(unmatched))
 
         # --- enriching: ensure film rows exist for matched tmdb_ids ---
-        await _enrich(list({m.tmdb_id for m in matched.values()}), tmdb)
+        tv_slugs = {
+            abs(mr.tmdb_id): f.lb_uri.rstrip("/").rsplit("/", 1)[-1]
+            for f in parsed.films
+            if (mr := matched.get(f.lb_uri)) and mr.tmdb_id < 0
+        }
+        await _enrich(list({m.tmdb_id for m in matched.values()}), tmdb, tv_slugs)
 
         # --- persist ratings, unmatched, crosswalk ---
         await asyncio.to_thread(_persist, profile_id, parsed, matched, unmatched, source)
@@ -107,7 +112,29 @@ async def _match_all(
     # Search TMDB for cache misses (bounded concurrency lives in the client).
     async def search_one(f: FilmRecord) -> tuple[FilmRecord, MatchResult | None]:
         res = await tmdb.search_movie(f.title, f.year)
-        return f, choose_match(f.title, f.year, res.get("results", []))
+        results = res.get("results", [])
+        # Letterboxd often uses festival/production year; TMDB uses release year.
+        # When the year-filtered search returns nothing, retry without the year.
+        if not results and f.year is not None:
+            res = await tmdb.search_movie(f.title, None)
+            results = res.get("results", [])
+        mr = choose_match(f.title, f.year, results)
+        if mr is not None and mr.confidence >= MATCH_THRESHOLD:
+            return f, mr
+
+        # TV fallback: for episodes logged as films on Letterboxd (e.g. Black Mirror
+        # episodes), strip the "Show: " prefix and search TMDB's TV catalogue.
+        tv_query = f.title
+        colon_pos = f.title.find(": ")
+        if colon_pos > 0:
+            tv_query = f.title[:colon_pos]
+        tv_res = await tmdb.search_tv(tv_query, f.year)
+        tv_results = tv_res.get("results", [])
+        if not tv_results and f.year is not None:
+            tv_res = await tmdb.search_tv(tv_query, None)
+            tv_results = tv_res.get("results", [])
+        tv_mr = choose_tv_match(f.title, f.year, tv_results)
+        return f, tv_mr if (tv_mr is not None and tv_mr.confidence >= MATCH_THRESHOLD) else mr
 
     results = await asyncio.gather(*(search_one(f) for f, _ in misses))
 
@@ -125,17 +152,24 @@ async def _match_all(
     return matched, unmatched
 
 
-async def _enrich(tmdb_ids: list[int], tmdb: TMDBClient) -> None:
+async def _enrich(
+    tmdb_ids: list[int], tmdb: TMDBClient, tv_slugs: dict[int, str] | None = None
+) -> None:
     if not tmdb_ids:
         return
-    payloads = await asyncio.gather(*(tmdb.get_movie(i) for i in tmdb_ids))
-    films = [parse_movie(p, regions={settings.default_region}) for p in payloads]
+    movie_ids = [i for i in tmdb_ids if i > 0]
+    tv_ids = [abs(i) for i in tmdb_ids if i < 0]
+    movie_payloads = await asyncio.gather(*(tmdb.get_movie(i) for i in movie_ids))
+    tv_payloads = await asyncio.gather(*(tmdb.get_tv(i) for i in tv_ids)) if tv_ids else []
+    all_films = [parse_movie(p, regions={settings.default_region}) for p in movie_payloads]
+    all_films += [parse_tv_show(p) for p in tv_payloads]
 
     def _persist_films() -> None:
         with get_engine().begin() as conn:
-            for f in films:
+            for f in all_films:
+                slug = (tv_slugs or {}).get(abs(f.tmdb_id)) if f.tmdb_id < 0 else None
                 wr = weighted_rating(f.vote_average, f.vote_count, corpus_mean=IMPORT_CORPUS_MEAN)
-                film_repo.upsert_film(conn, f, weighted=wr)
+                film_repo.upsert_film(conn, f, weighted=wr, lb_slug=slug)
 
     await asyncio.to_thread(_persist_films)
 
@@ -167,8 +201,8 @@ def _merge_rating(row: dict[str, Any], f: FilmRecord) -> None:
     row["review_text"] = row["review_text"] or f.review_text
     if f.watched_date and (row["watched_date"] is None or f.watched_date > row["watched_date"]):
         row["watched_date"] = f.watched_date
-    # watched anywhere wins over watchlist-only
-    row["in_watchlist"] = row["in_watchlist"] and f.in_watchlist
+    row["in_watchlist"] = row["in_watchlist"] or f.in_watchlist
+    row["watched"] = row["watched"] or f.watched
 
 
 def _persist(
@@ -196,6 +230,7 @@ def _persist(
                 "watched_date": f.watched_date,
                 "review_text": f.review_text,
                 "in_watchlist": f.in_watchlist,
+                "watched": f.watched,
                 "source": source,
             }
         else:

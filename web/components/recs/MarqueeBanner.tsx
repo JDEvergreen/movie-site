@@ -4,9 +4,9 @@ import { useMemo } from "react";
 
 const VW = 1400;
 const VH = 280;
-const FRAME = 52;
-const BR = 9;    // bulb radius
-const BS = 30;   // bulb spacing
+const FRAME = 52;        // border width — bulbs sit at FRAME/2 = 26
+const BR = 8;            // bulb radius
+const BS = 28;           // bulb spacing
 
 function seed(n: number): number {
   const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -17,31 +17,32 @@ interface Bulb { x: number; y: number; k: number }
 
 function row(y: number, xStart: number, xEnd: number, kStart: number): Bulb[] {
   const out: Bulb[] = [];
-  for (let x = xStart; x <= xEnd; x += BS) {
+  for (let x = xStart; x <= xEnd; x += BS)
     out.push({ x, y, k: kStart + out.length });
-  }
   return out;
 }
 
 function col(x: number, yStart: number, yEnd: number, kStart: number): Bulb[] {
   const out: Bulb[] = [];
-  for (let y = yStart; y <= yEnd; y += BS) {
+  for (let y = yStart; y <= yEnd; y += BS)
     out.push({ x, y, k: kStart + out.length });
-  }
   return out;
 }
 
+const MID  = FRAME / 2;          // 26 — center of border
+const XMIN = MID, XMAX = VW - MID;
+const YMIN = MID, YMAX = VH - MID;
+
 export function MarqueeBanner() {
   const bulbs = useMemo<Bulb[]>(() => {
-    const xMin = 16, xMax = VW - 16;
-    const yMin = 16, yMax = VH - 16;
-    const t1 = row(16, xMin, xMax, 0);
-    const t2 = row(36, xMin + BS / 2, xMax - BS / 2, t1.length);
-    const b1 = row(VH - 16, xMin, xMax, t1.length + t2.length);
-    const b2 = row(VH - 36, xMin + BS / 2, xMax - BS / 2, t1.length + t2.length + b1.length);
-    const l = col(26, 56, VH - 56, t1.length + t2.length + b1.length + b2.length);
-    const r = col(VW - 26, 56, VH - 56, t1.length + t2.length + b1.length + b2.length + l.length);
-    return [...t1, ...t2, ...b1, ...b2, ...l, ...r];
+    // Single row, centered in the border on all four sides.
+    // Columns start/end one step inside the corners so rows handle them.
+    const top   = row(YMIN, XMIN, XMAX, 0);
+    const bot   = row(YMAX, XMIN, XMAX, top.length);
+    const n0    = top.length + bot.length;
+    const left  = col(XMIN, YMIN + BS, YMAX - BS, n0);
+    const right = col(XMAX, YMIN + BS, YMAX - BS, n0 + left.length);
+    return [...top, ...bot, ...left, ...right];
   }, []);
 
   const ix = FRAME, iy = FRAME;
@@ -50,7 +51,10 @@ export function MarqueeBanner() {
   return (
     <>
       <style>{`
-        @keyframes bl { from { opacity: 1; } to { opacity: 0.08; } }
+        @keyframes twinkle {
+          from { fill: #fff0a0; }
+          to   { fill: #7a4808; }
+        }
       `}</style>
       <div
         style={{
@@ -65,27 +69,18 @@ export function MarqueeBanner() {
           aria-label="Watch Next marquee sign"
         >
           <defs>
-            {/* Interior grid pattern */}
             <pattern id="mgrid" width="48" height="48" patternUnits="userSpaceOnUse">
               <path d="M48 0H0V48" fill="none" stroke="rgba(140,100,40,0.12)" strokeWidth="0.8" />
             </pattern>
-            {/* Bulb glow filter */}
-            <filter id="bglow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
 
           {/* Frame — three layers for depth */}
-          <rect x={0} y={0} width={VW} height={VH} rx={5} fill="#2e0800" />
-          <rect x={4} y={4} width={VW-8} height={VH-8} rx={4} fill="#7a1a00" />
-          <rect x={8} y={8} width={VW-16} height={VH-16} rx={3} fill="#a82800" />
+          <rect x={0}  y={0}  width={VW}    height={VH}    rx={5} fill="#2e0800" />
+          <rect x={4}  y={4}  width={VW-8}  height={VH-8}  rx={4} fill="#7a1a00" />
+          <rect x={8}  y={8}  width={VW-16} height={VH-16} rx={3} fill="#a82800" />
           <rect x={12} y={12} width={VW-24} height={VH-24} rx={2} fill="#c43800" />
 
-          {/* Inner frame edge (bright highlight) */}
+          {/* Inner frame edge */}
           <rect x={ix-4} y={iy-4} width={iw+8} height={ih+8} rx={2} fill="#d84000" />
 
           {/* Cream interior */}
@@ -105,25 +100,24 @@ export function MarqueeBanner() {
             WATCH NEXT
           </text>
 
-          {/* Bulb sockets */}
+          {/* Sockets */}
           {bulbs.map((b) => (
             <circle key={`s${b.k}`} cx={b.x} cy={b.y} r={BR + 3} fill="#1e0600" />
           ))}
 
-          {/* Animated bulbs */}
+          {/* Bulbs — twinkle bright amber ↔ dark amber at original speed */}
           {bulbs.map((b) => {
             const delay = seed(b.k * 7.3) * 3;
-            const dur = 0.6 + seed(b.k * 3.1 + 99) * 1.1;
+            const dur   = 0.6 + seed(b.k * 3.1 + 99) * 1.1;
             return (
               <circle
                 key={`b${b.k}`}
                 cx={b.x}
                 cy={b.y}
                 r={BR}
-                fill="#ffe8a0"
-                filter="url(#bglow)"
+                fill="#fff0a0"
                 style={{
-                  animationName: "bl",
+                  animationName: "twinkle",
                   animationDuration: `${dur}s`,
                   animationDelay: `${delay}s`,
                   animationTimingFunction: "ease-in-out",

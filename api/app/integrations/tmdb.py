@@ -152,3 +152,16 @@ class TMDBClient:
         if year is not None:
             params["primary_release_year"] = year
         return await self._get("/search/movie", params, TTL_DISCOVER)
+
+    async def search_tv(self, query: str, year: int | None = None) -> dict[str, Any]:
+        params: dict[str, Any] = {"query": query, "language": "en-US", "include_adult": "false"}
+        if year is not None:
+            params["first_air_date_year"] = year
+        return await self._get("/search/tv", params, TTL_DISCOVER)
+
+    async def get_tv(self, tv_id: int) -> dict[str, Any]:
+        return await self._get(
+            f"/tv/{tv_id}",
+            {"language": "en-US", "append_to_response": "keywords,credits"},
+            TTL_MOVIE,
+        )

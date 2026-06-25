@@ -121,6 +121,7 @@ export interface FilmCard {
   genres?: string[];
   lbRating?: number | null;
   lbWatchCount?: number | null;
+  lbSlug?: string | null;
 }
 
 export interface FilmDatum {
@@ -194,6 +195,44 @@ export async function getRecs(profileId: string, surface: string): Promise<Recom
 
 export async function getWatchlist(profileId: string): Promise<FilmCard[]> {
   return unwrap<FilmCard[]>(await fetch(`${API_BASE}/profiles/${profileId}/watchlist`));
+}
+
+export interface MatchCompatibility {
+  score: number;
+  sharedGenres: string[];
+  divergentGenres: string[];
+  blurb: string;
+}
+
+export interface MatchResult {
+  profileA: string;
+  profileB: string;
+  compatibility: MatchCompatibility;
+  items: RecItem[];
+}
+
+export async function getMatch(profileId: string, otherUsername: string): Promise<MatchResult> {
+  return unwrap<MatchResult>(
+    await fetch(`${API_BASE}/profiles/${profileId}/match?with=${encodeURIComponent(otherUsername)}`),
+  );
+}
+
+export interface DiscoverParams {
+  genre?: string;
+  era?: string;
+  length?: string;
+  popularity?: string;
+  language?: string;
+}
+
+export async function getDiscover(profileId: string, params: DiscoverParams): Promise<RecItem[]> {
+  const qs = new URLSearchParams();
+  if (params.genre) qs.set("genre", params.genre);
+  if (params.era) qs.set("era", params.era);
+  if (params.length) qs.set("length", params.length);
+  if (params.popularity) qs.set("popularity", params.popularity);
+  if (params.language) qs.set("language", params.language);
+  return unwrap<RecItem[]>(await fetch(`${API_BASE}/profiles/${profileId}/discover?${qs}`));
 }
 
 export async function getDismissed(profileId: string): Promise<FilmCard[]> {

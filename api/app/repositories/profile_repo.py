@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import Connection, update
+from sqlalchemy import Connection, delete, update
 from sqlalchemy.dialects.postgresql import insert
 
 from app.db import tables as t
@@ -89,6 +89,7 @@ def save_ratings(conn: Connection, profile_id: uuid.UUID, rows: list[dict[str, A
                 "watched_date",
                 "review_text",
                 "in_watchlist",
+                "watched",
                 "source",
             )
         },
@@ -97,12 +98,10 @@ def save_ratings(conn: Connection, profile_id: uuid.UUID, rows: list[dict[str, A
 
 
 def save_unmatched(conn: Connection, profile_id: uuid.UUID, rows: list[dict[str, Any]]) -> None:
+    conn.execute(delete(t.unmatched_film).where(t.unmatched_film.c.profile_id == profile_id))
     if not rows:
         return
-    payload = [{"profile_id": profile_id, **r} for r in rows]
-    stmt = insert(t.unmatched_film).values(payload)
-    stmt = stmt.on_conflict_do_nothing(index_elements=["profile_id", "lb_uri"])
-    conn.execute(stmt)
+    conn.execute(insert(t.unmatched_film).values([{"profile_id": profile_id, **r} for r in rows]))
 
 
 def save_crosswalk(conn: Connection, rows: list[dict[str, Any]]) -> None:

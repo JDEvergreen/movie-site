@@ -14,27 +14,22 @@ from __future__ import annotations
 import asyncio
 import re
 
-import httpx
 from bs4 import BeautifulSoup
+from curl_cffi.requests import AsyncSession
 
 from app.domain.letterboxd_export import FilmRecord, ParsedExport
 
 BASE_URL = "https://letterboxd.com"
-_UA = "movie-rec-bot/0.1 (personal recommendation tool; self-import only)"
-_PAGE_DELAY = 0.35  # seconds between pages — polite pacing
+_PAGE_DELAY = 0.8  # seconds between pages — polite pacing
 
 
 class LbProfileScraper:
     def __init__(self, *, timeout: float = 20.0) -> None:
-        self._client = httpx.AsyncClient(
-            base_url=BASE_URL,
-            headers={"User-Agent": _UA, "Accept-Language": "en"},
-            timeout=timeout,
-            follow_redirects=True,
-        )
+        # impersonate="chrome120" sends Chrome's TLS fingerprint, passing Cloudflare checks
+        self._session = AsyncSession(impersonate="chrome120", timeout=timeout)
 
     async def aclose(self) -> None:
-        await self._client.aclose()
+        await self._session.close()
 
     async def __aenter__(self) -> LbProfileScraper:
         return self
@@ -42,19 +37,19 @@ class LbProfileScraper:
     async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
-    async def _get(self, path: str) -> httpx.Response | None:
+    async def _get(self, path: str) -> str | None:
         try:
-            r = await self._client.get(path)
-            return r if r.status_code == 200 else None
-        except httpx.HTTPError:
+            r = await self._session.get(BASE_URL + path)
+            return r.text if r.status_code == 200 else None
+        except Exception:
             return None
 
     async def check_user(self, username: str) -> str | None:
         """Return a display name if the user exists and is public, else None."""
-        resp = await self._get(f"/{username}/")
-        if resp is None:
+        html = await self._get(f"/{username}/")
+        if html is None:
             return None
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         # <h1 class="... person-title"><a ...>Display Name</a></h1>
         h1 = soup.find("h1", class_=re.compile(r"person-title"))
         if h1:
@@ -78,10 +73,10 @@ class LbProfileScraper:
         page = 1
         while True:
             path = f"/{username}/films/" if page == 1 else f"/{username}/films/page/{page}/"
-            resp = await self._get(path)
-            if resp is None:
+            html = await self._get(path)
+            if html is None:
                 break
-            soup = BeautifulSoup(resp.text, "html.parser")
+            soup = BeautifulSoup(html, "html.parser")
             items = _parse_film_grid(soup, watched=True)
             if not items:
                 break
@@ -103,10 +98,10 @@ class LbProfileScraper:
                 if page == 1
                 else f"/{username}/watchlist/page/{page}/"
             )
-            resp = await self._get(path)
-            if resp is None:
+            html = await self._get(path)
+            if html is None:
                 break
-            soup = BeautifulSoup(resp.text, "html.parser")
+            soup = BeautifulSoup(html, "html.parser")
             items = _parse_film_grid(soup, watched=False)
             if not items:
                 break
@@ -131,17 +126,16 @@ async def scrape_profile(username: str) -> ParsedExport:
         if display_name is None:
             raise ValueError(f"Letterboxd user '{username}' not found or profile is private")
 
-        films, watchlist = await asyncio.gather(
-            scraper.scrape_films(username),
-            scraper.scrape_watchlist(username),
-        )
+        films = await scraper.scrape_films(username)
+        watchlist = await scraper.scrape_watchlist(username)
 
-    # Add unwatched watchlist entries; skip films already logged as watched so
-    # in_watchlist stays False for watched films (the exclusion query relies on
-    # in_watchlist=False to identify scraped watched-but-unrated films).
+    # Merge watched and watchlist. Films in both lists stay as watched (watched=True)
+    # but also get in_watchlist=True so they appear in the spin wheel.
     by_uri: dict[str, FilmRecord] = {f.lb_uri: f for f in films}
     for wl in watchlist:
-        if wl.lb_uri not in by_uri:
+        if wl.lb_uri in by_uri:
+            by_uri[wl.lb_uri].in_watchlist = True
+        else:
             wl.in_watchlist = True
             by_uri[wl.lb_uri] = wl
 
@@ -158,22 +152,31 @@ async def scrape_profile(username: str) -> ParsedExport:
 def _parse_film_grid(soup: BeautifulSoup, *, watched: bool) -> list[FilmRecord]:
     """Extract FilmRecord objects from a Letterboxd poster-grid page.
 
-    Each poster <div> carries data-film-slug, data-film-name, and data-film-year.
-    Ratings appear as a sibling/ancestor <span class="rated-N"> (N=1–10 on the
-    same integer scale stored in rating_0_10).
+    Letterboxd now renders posters as <div data-component-class="LazyPoster">
+    with data-item-slug, data-item-name (e.g. "Sicario (2015)"), and
+    data-item-link. Ratings appear as <span class="rated-N"> in the parent <li>.
     """
     records = []
-    for div in soup.find_all("div", attrs={"data-film-slug": True}):
-        slug = str(div.get("data-film-slug") or "").strip()
-        name = str(div.get("data-film-name") or "").strip()
-        if not slug or not name:
+    for div in soup.find_all("div", attrs={"data-component-class": "LazyPoster"}):
+        slug = str(div.get("data-item-slug") or "").strip()
+        item_name = str(div.get("data-item-name") or "").strip()
+        if not slug or not item_name:
             continue
 
-        year_raw = str(div.get("data-film-year") or "").strip()
-        year = int(year_raw) if year_raw.isdigit() else None
-        lb_uri = f"{BASE_URL}/film/{slug}/"
+        # "Sicario (2015)" → title="Sicario", year=2015
+        year: int | None = None
+        name = item_name
+        m_year = re.search(r"\((\d{4})\)\s*$", item_name)
+        if m_year:
+            year = int(m_year.group(1))
+            name = item_name[: m_year.start()].strip()
+        if not name:
+            continue
 
-        # Walk up to the <li class="poster-container"> to find the rating span.
+        item_link = str(div.get("data-item-link") or f"/film/{slug}/").strip()
+        lb_uri = f"{BASE_URL}{item_link}"
+
+        # Rating span lives in the parent <li class="griditem">
         rating_0_10: int | None = None
         container = div.parent
         if container:

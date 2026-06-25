@@ -42,6 +42,35 @@ class MatchResult:
     title: str
 
 
+def choose_tv_match(
+    query_title: str, query_year: int | None, tv_candidates: list[dict[str, Any]]
+) -> MatchResult | None:
+    """Match against TMDB TV shows; uses negative IDs to distinguish from movies.
+
+    For 'Show: Episode' titles (common on Letterboxd), the show name before the
+    colon is used for matching — e.g. 'Black Mirror: San Junipero' matches the
+    'Black Mirror' TV series.
+    """
+    if not tv_candidates:
+        return None
+    match_title = query_title
+    colon_pos = query_title.find(": ")
+    if colon_pos > 0:
+        match_title = query_title[:colon_pos]
+    normalized = [
+        {
+            "title": c.get("name", ""),
+            "original_title": c.get("original_name", ""),
+            "release_date": c.get("first_air_date", ""),
+            "id": -(c["id"]),
+            "vote_count": c.get("vote_count", 0),
+            "popularity": c.get("popularity", 0.0),
+        }
+        for c in tv_candidates
+    ]
+    return choose_match(match_title, query_year, normalized)
+
+
 def choose_match(
     query_title: str, query_year: int | None, candidates: list[dict[str, Any]]
 ) -> MatchResult | None:

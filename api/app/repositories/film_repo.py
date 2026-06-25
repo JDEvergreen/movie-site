@@ -16,10 +16,12 @@ from app.db import tables as t
 from app.domain.enrich import EnrichedFilm
 
 
-def upsert_film(conn: Connection, ef: EnrichedFilm, *, weighted: float | None) -> None:
+def upsert_film(
+    conn: Connection, ef: EnrichedFilm, *, weighted: float | None, lb_slug: str | None = None
+) -> None:
     now = datetime.now(UTC)
 
-    film_values = {
+    film_values: dict[str, Any] = {
         "tmdb_id": ef.tmdb_id,
         "title": ef.title,
         "original_title": ef.original_title,
@@ -36,6 +38,8 @@ def upsert_film(conn: Connection, ef: EnrichedFilm, *, weighted: float | None) -
         "status": ef.status,
         "enriched_at": now,
     }
+    if lb_slug is not None:
+        film_values["lb_slug"] = lb_slug
     stmt = insert(t.film).values(**film_values)
     stmt = stmt.on_conflict_do_update(
         index_elements=[t.film.c.tmdb_id],

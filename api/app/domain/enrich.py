@@ -118,6 +118,26 @@ def _parse_providers(block: dict[str, Any], regions: set[str] | None) -> list[St
     return offers
 
 
+def parse_tv_show(payload: dict[str, Any]) -> EnrichedFilm:
+    """Parse a TMDB TV series payload; stores with negative tmdb_id to avoid collision."""
+    return EnrichedFilm(
+        tmdb_id=-(payload["id"]),
+        title=payload.get("name") or payload.get("original_name") or "",
+        original_title=payload.get("original_name"),
+        year=_year_from(payload.get("first_air_date")),
+        runtime_min=None,
+        original_language=payload.get("original_language"),
+        overview=payload.get("overview") or None,
+        poster_path=payload.get("poster_path"),
+        vote_average=payload.get("vote_average"),
+        vote_count=payload.get("vote_count"),
+        popularity=payload.get("popularity"),
+        adult=bool(payload.get("adult", False)),
+        status=payload.get("status"),
+        genres=[(g["id"], g["name"]) for g in payload.get("genres", [])],
+    )
+
+
 def weighted_rating(
     vote_average: float | None, vote_count: int | None, *, corpus_mean: float, m: int = 250
 ) -> float | None:

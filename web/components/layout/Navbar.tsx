@@ -7,6 +7,8 @@ const NAV = [
   { label: "Recs", href: (id: string) => `/p/${id}/recs` },
   { label: "Taste", href: (id: string) => `/p/${id}/taste` },
   { label: "Watchlist", href: (id: string) => `/p/${id}/watchlist` },
+  { label: "Discover", href: (id: string) => `/p/${id}/discover` },
+  { label: "Match", href: (id: string) => `/p/${id}/match` },
   { label: "Settings", href: (id: string) => `/p/${id}/settings` },
 ];
 

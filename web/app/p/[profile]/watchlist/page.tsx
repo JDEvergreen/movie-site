@@ -34,19 +34,48 @@ export default function WatchlistPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const slotEls = useRef<(HTMLDivElement | null)[]>(Array(SLOTS).fill(null));
   const slotImgs = useRef<(HTMLImageElement | null)[]>(Array(SLOTS).fill(null));
-  const slotFilm = useRef<number[]>(Array(SLOTS).fill(-1)); // filmIdx currently shown per slot
-  const scrollPos = useRef(0);   // current scroll offset
-  const baseAbs = useRef(0);     // absIdx of the centered film
+  const slotFilm = useRef<number[]>(Array(SLOTS).fill(-1));
+  const scrollPos = useRef(0);
+  const baseAbs = useRef(0);
   const filmsRef = useRef<FilmCard[]>([]);
   const rafId = useRef(0);
 
-  useEffect(() => { filmsRef.current = films; }, [films]);
+  // Stable ref callbacks — created once so React only calls them on real mount/unmount,
+  // not on every re-render (which would reset all slot transforms to -9999px)
+  const slotRefs = useRef(
+    Array.from({ length: SLOTS }, (_, s) => (el: HTMLDivElement | null) => {
+      slotEls.current[s] = el;
+      if (el) el.style.transform = "translateX(-9999px)";
+    })
+  );
+  const imgRefs = useRef(
+    Array.from({ length: SLOTS }, (_, s) => (el: HTMLImageElement | null) => {
+      slotImgs.current[s] = el;
+    })
+  );
 
-  useEffect(() => {
+
+  const loadWatchlist = useCallback(() => {
     getWatchlist(profile)
-      .then((d) => { setFilms(d); setLoading(false); })
+      .then((d) => {
+        // Shuffle so the reel order is random on every visit
+        for (let i = d.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [d[i], d[j]] = [d[j], d[i]];
+        }
+        setFilms(d);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [profile]);
+
+  useEffect(() => { loadWatchlist(); }, [loadWatchlist]);
+
+  useEffect(() => {
+    const handler = () => loadWatchlist();
+    window.addEventListener("watchlist:invalidate", handler);
+    return () => window.removeEventListener("watchlist:invalidate", handler);
+  }, [loadWatchlist]);
 
   // Pre-load every poster so img.src swaps during spin are instant (cache hit, no decode)
   useEffect(() => {
@@ -80,16 +109,26 @@ export default function WatchlistPage() {
     }
   }, []);
 
-  // Initialise slot positions once films are in the DOM
-  useEffect(() => {
-    if (films.length < 2 || !containerRef.current) return;
-    const ww = containerRef.current.clientWidth;
-    const pos = centerOffset(films.length, ww);
+  // Keep filmsRef always current — safe to write refs during render
+  filmsRef.current = films;
+
+  // Called by React when the reel container mounts. At this point all slot ref
+  // callbacks have already fired (children commit before parents), so slotEls
+  // is fully populated and we can position everything before the first paint.
+  const initReel = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    if (!el) return;
+    const fs = filmsRef.current;
+    if (fs.length < 2) return;
+    const ww = el.clientWidth || window.innerWidth;
+    const startIdx = Math.floor(Math.random() * fs.length);
+    const initialAbs = fs.length + startIdx;
+    baseAbs.current = initialAbs;
+    const pos = centerOffset(initialAbs, ww);
     scrollPos.current = pos;
-    baseAbs.current = films.length;
     slotFilm.current.fill(-1);
     updateSlots(pos);
-  }, [films, updateSlots]);
+  }, [updateSlots]);
 
   function spin() {
     if (spinning || films.length < 2) return;
@@ -104,7 +143,7 @@ export default function WatchlistPage() {
     const targetAbs = baseAbs.current + N * ROTATIONS + (steps === 0 ? N : steps);
     const startPos = scrollPos.current;
     const endPos = centerOffset(targetAbs, ww);
-    const duration = 5200;
+    const duration = 2600;
     let t0: number | null = null;
 
     function frame(now: number) {
@@ -200,7 +239,7 @@ export default function WatchlistPage() {
         <>
           {/* ── Virtual reel ── */}
           <div
-            ref={containerRef}
+            ref={initReel}
             style={{
               height: REEL_H,
               flexShrink: 0,
@@ -212,11 +251,7 @@ export default function WatchlistPage() {
             {Array.from({ length: SLOTS }, (_, s) => (
               <div
                 key={s}
-                ref={(el) => {
-                  slotEls.current[s] = el;
-                  // Start off-screen; updateSlots will place them correctly
-                  if (el) el.style.transform = "translateX(-9999px)";
-                }}
+                ref={slotRefs.current[s]}
                 style={{
                   position: "absolute",
                   top: (REEL_H - POSTER_H) / 2,
@@ -229,7 +264,7 @@ export default function WatchlistPage() {
                 }}
               >
                 <img
-                  ref={(el) => { slotImgs.current[s] = el; }}
+                  ref={imgRefs.current[s]}
                   alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
@@ -345,7 +380,9 @@ export default function WatchlistPage() {
                     </p>
                   </div>
                   <a
-                    href={`https://letterboxd.com/tmdb/${winner.tmdbId}/`}
+                    href={winner.lbSlug
+                      ? `https://letterboxd.com${winner.lbSlug}`
+                      : `https://letterboxd.com/tmdb/${winner.tmdbId}/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{

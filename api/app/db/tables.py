@@ -145,6 +145,8 @@ user_film_rating = Table(
     Column("watched_date", Date),
     Column("review_text", Text),
     Column("in_watchlist", Boolean),
+    Column("watchlist_added_date", Date),
+    Column("watched", Boolean),
     Column("source", Text),
 )
 

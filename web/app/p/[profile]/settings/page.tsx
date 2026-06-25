@@ -145,6 +145,7 @@ export default function SettingsPage() {
         if (st.status === "ready") {
           const updated = await getProfileSummary(profile);
           setSummary(updated);
+          window.dispatchEvent(new CustomEvent("watchlist:invalidate"));
           setSyncLabel(null);
           return;
         }

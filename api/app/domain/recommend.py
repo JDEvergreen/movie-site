@@ -30,6 +30,7 @@ class Candidate:
     countries: list[str] = field(default_factory=list)
     lb_rating: float | None = None
     lb_watch_count: int | None = None
+    original_language: str | None = None
 
 
 @dataclass
@@ -177,12 +178,13 @@ def recommend(
     if surface == "blind_spots":
         # 80% fit floor — films you'd actively dislike don't appear regardless of acclaim.
         scored = [(s, c, contrib) for s, c, contrib in scored if fit_percent(s) >= 80]
-        # Quality-dominant blend: lb_rating leads, taste score breaks close ties.
-        # α=1.0 means a 0.1-point rating gap needs ~13% taste difference to be overridden;
-        # a 0.2-point gap can never be overcome (max taste spread with 80% floor is ~18%).
+        # TEST ONLY — blend lb_rating + log10(lb_watch_count).
+        # Calibrated so 4.5/200k ≈ 4.0/2M (revert to lb_rating sort when done).
+        import math
         scored.sort(
             key=lambda x: (
-                (x[1].lb_rating if x[1].lb_rating is not None else x[1].weighted_rating / 2)
+                2.0 * (x[1].lb_rating if x[1].lb_rating is not None else x[1].weighted_rating / 2)
+                + math.log10(x[1].lb_watch_count or 1)
                 + 1.0 * x[0]
             ),
             reverse=True,

@@ -6,7 +6,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import Connection, and_, or_, select
+from sqlalchemy import Connection, or_, select
 
 from app.db import tables as t
 from app.domain.recommend import Candidate, Taste
@@ -55,11 +55,7 @@ def excluded_film_ids(conn: Connection, profile_id: uuid.UUID) -> set[int]:
     watched = conn.execute(
         select(ufr.c.film_id).where(
             ufr.c.profile_id == profile_id,
-            or_(
-                ufr.c.watched_date.is_not(None),
-                ufr.c.rating_0_10.is_not(None),
-                and_(ufr.c.source == "scrape", ufr.c.in_watchlist.is_not(True)),
-            ),
+            ufr.c.watched.is_(True),
         )
     )
     out = {r[0] for r in watched}
@@ -93,6 +89,7 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             film.c.popularity,
             film.c.lb_rating,
             film.c.lb_watch_count,
+            film.c.original_language,
         ).where(
             film.c.weighted_rating.is_not(None),
             film.c.vote_count.is_not(None),
@@ -124,6 +121,7 @@ def load_candidates(conn: Connection, exclude: set[int]) -> list[Candidate]:
             decade=(r.year - r.year % 10) if r.year else None,
             lb_rating=float(r.lb_rating) if r.lb_rating is not None else None,
             lb_watch_count=int(r.lb_watch_count) if r.lb_watch_count is not None else None,
+            original_language=r.original_language,
         )
     if not cands:
         return []
